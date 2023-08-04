@@ -55,15 +55,15 @@ std::vector<addr_match> get_offs(const process& a)
 	const auto str_gsub = util::get_prologue(a, add_value_xrefs[0].loc);
 	const auto str_gsub_calls = util::get_calls(a, str_gsub);
 	const auto tag_error = util::get_calls(a, str_gsub)[10].loc;
-	const auto lua_typename = scanner::string_scan(a, "no value")[0].loc;
+	const auto lua_typename = scanner::string_scan(a, "no value")[2].loc;
 	const auto luaL_typeerrorL = util::get_prologue(a, util::get_calls(a, tag_error)[1].loc);
 	const auto luaL_typeerrorL_calls = util::get_calls(a, luaL_typeerrorL);
 	const auto currfuncname = luaL_typeerrorL_calls[0].loc;
 	const auto luaA_toobject = luaL_typeerrorL_calls[1].loc;
 	const auto luaA_toobject_xrefs = scanner::xref_scan(a, luaA_toobject);
-	const auto luaL_typename = luaA_toobject_xrefs[7].loc;
-	const auto lua_breakpoint = luaA_toobject_xrefs[9].loc;
-	const auto lua_getcoverage = luaA_toobject_xrefs[10].loc;
+	const auto luaL_typename = util::get_prologue(a, luaA_toobject_xrefs[7].loc);
+	const auto lua_breakpoint = util::get_prologue(a, luaA_toobject_xrefs[9].loc);
+	const auto lua_getcoverage = util::get_prologue(a, luaA_toobject_xrefs[10].loc);
 	const auto luaL_where_calls = util::get_calls(a, luaL_where);
 	const auto luaO_chunkid = luaL_where_calls[1].loc;
 	const auto luaT_objtypename = luaL_typeerrorL_calls[2].loc;
@@ -71,6 +71,9 @@ std::vector<addr_match> get_offs(const process& a)
 	const auto luaT_objtypenamestr = util::get_calls(a, luaT_objtypename)[0].loc;
 	const auto luaG_typeerrorL = util::get_prologue(a, luaT_objtypename_xrefs[1].loc);
 	const auto luaG_ordererror = util::get_prologue(a, luaT_objtypename_xrefs[5].loc);
+	const auto luaG_ordererror_xrefs = scanner::xref_scan(a, luaG_ordererror);
+	const auto call_orderTM = util::get_prologue(a, luaG_ordererror_xrefs[8].loc);
+	const auto call_orderTM_calls = util::get_calls(a, call_orderTM);
 	const auto luaG_runerrorL = util::get_calls(a, luaG_ordererror)[2].loc;
 	const auto luaG_runerrorL_calls = util::get_calls(a, luaG_runerrorL);
 	const auto pusherror = luaG_runerrorL_calls[1].loc;
@@ -78,6 +81,7 @@ std::vector<addr_match> get_offs(const process& a)
 	const auto luaO_chunkid_xrefs = scanner::xref_scan(a, luaO_chunkid);
 	const auto luau_load_inlined = util::get_prologue(a, luaO_chunkid_xrefs[3].loc);
 	const auto getfunc = util::get_prologue(a, luaO_chunkid_xrefs[21].loc);
+	const auto getfunc_xrefs = scanner::xref_scan(a, getfunc);
 	const auto currentline = pusherror_calls[1].loc;
 	const auto currentline_xrefs = scanner::xref_scan(a, currentline);
 	const auto luaL_argerrorL = util::get_prologue(a, currentline_xrefs[0].loc);
@@ -95,7 +99,7 @@ std::vector<addr_match> get_offs(const process& a)
 	const auto lua_resume_calls = util::get_calls(a, lua_resume);
 	const auto resume_error = lua_resume_calls[0].loc;
 	const auto lua_xmove = auxresume_calls[4].loc;
-	const auto lua_xpush = util::get_prologue(a, lua_xmove + 0x10);
+	const auto lua_xpush = util::get_prologue(a, util::get_epilogue(a, lua_xmove) + 0x10);
 	const auto luaD_rawrunprotected = lua_resume_calls[2].loc;
 	const auto lua_resumeerror = util::get_prologue(a, scanner::xref_scan(a, resume_error)[2].loc);
 	const auto lua_resumeerror_calls = util::get_calls(a, lua_resumeerror);
@@ -165,21 +169,36 @@ std::vector<addr_match> get_offs(const process& a)
 	const auto resume_calls = util::get_calls(a, resume);
 	const auto luaV_tryfuncTM = resume_calls[0].loc;
 	const auto metatable_str_xrefs = scanner::string_scan(a, "__metatable");
-	const auto luaB_getmetatable = metatable_str_xrefs[1].loc;
-	const auto luaB_setmetatable = metatable_str_xrefs[2].loc;
+	const auto luaB_getmetatable = util::get_prologue(a, metatable_str_xrefs[1].loc);
+	const auto luaB_setmetatable = util::get_prologue(a, metatable_str_xrefs[2].loc);
 	const auto luaB_setmetatable_calls = util::get_calls(a, luaB_setmetatable);
 	const auto luaL_getmetafield = luaB_setmetatable_calls[0].loc;
 	const auto luaC_barrierf = luaB_setmetatable_calls[1].loc;
 	const auto luaC_barrierf_xrefs = scanner::xref_scan(a, luaC_barrierf);
-	const auto lua_replace = luaC_barrierf_xrefs[7].loc;
-	const auto gmatch_aux = luaC_barrierf_xrefs[11].loc;
-	const auto clearupvals = luaC_barrierf_xrefs[13].loc;
-	const auto luau_execute = luaC_barrierf_xrefs[17].loc;
-	const auto luau_execute_singlestep = luaC_barrierf_xrefs[14].loc;
+	const auto lua_replace = util::get_prologue(a, luaC_barrierf_xrefs[7].loc);
+	const auto gmatch_aux = util::get_prologue(a, luaC_barrierf_xrefs[11].loc);
+	const auto clearupvals = util::get_prologue(a, luaC_barrierf_xrefs[13].loc);
+	const auto luau_execute = util::get_prologue(a, luaC_barrierf_xrefs[17].loc);
+	const auto luau_execute_singlestep = util::get_prologue(a, luaC_barrierf_xrefs[14].loc);
 	const auto tfreeze = metatable_str_xrefs[3].loc;
 	const auto tclone = metatable_str_xrefs[4].loc;
-	const auto lua_isnumber = util::get_calls(a, util::get_prologue(a, scanner::string_scan(a, "attempt to multiply a Vector2 with an incompatible value type or nil")[0].loc))[1].loc;
-
+	const auto lua_isnumber = util::get_calls(a, util::get_prologue(a, scanner::string_scan(a, "attempt to multiply a Vector2 with an incompatible value type or nil")[0].loc))[4].loc;
+	const auto luau_execute_handler = util::get_prologue(a, scanner::xref_scan(a, luau_execute)[0].loc);
+	const auto luau_callhook = util::get_prologue(a, luau_execute_handler - 0x10);
+	const auto luaB_setfenv = util::get_prologue(a, scanner::xref_scan(a, util::get_prologue(a, luaC_barrierf_xrefs[8].loc))[0].loc);
+	const auto luaB_setfenv_calls = util::get_calls(a, luaB_setfenv);
+	const auto lua_pushthread = luaB_setfenv_calls[3].loc;
+	const auto luaB_getfenv = util::get_prologue(a, getfunc_xrefs[0].loc);
+	const auto luaB_getfenv_calls = util::get_calls(a, luaB_getfenv);
+	const auto lua_setsafeenv = luaB_getfenv_calls[2].loc;
+	const auto luaO_rawequalObj = call_orderTM_calls[0].loc;
+	const auto luai_veceq = util::get_calls(a, luaO_rawequalObj)[0].loc;
+	const auto callTMres = call_orderTM_calls[1].loc;
+	const auto getlocal_pre = util::get_prologue(a, scanner::string_scan(a, "Cannot create enough space in lua stack for bridging value")[4].loc);
+	const auto getlocal_pre_calls = util::get_calls(a, getlocal_pre);
+	const auto lua_getlocal = getlocal_pre_calls[0].loc;
+	const auto lua_setlocal = getlocal_pre_calls[5].loc;
+	const auto luaF_getlocal = util::get_calls(a, lua_getlocal)[0].loc;
 
 	const auto end_time = std::chrono::high_resolution_clock::now();
 	std::printf("Time taken: %lldms\r\n", std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count());
@@ -282,7 +301,19 @@ std::vector<addr_match> get_offs(const process& a)
 	return_vector.push_back({ "luau_execute", luau_execute });
 	return_vector.push_back({ "luau_execute_singlestep", luau_execute_singlestep });
 	return_vector.push_back({ "lua_isnumber", lua_isnumber });
-
+	return_vector.push_back({ "luau_execute_handler", luau_execute_handler });
+	return_vector.push_back({ "luau_callhook", luau_callhook });
+	return_vector.push_back({ "luaO_rawequalObj", luaO_rawequalObj });
+	return_vector.push_back({ "callTMres", callTMres });
+	return_vector.push_back({ "call_orderTM", call_orderTM });
+	return_vector.push_back({ "luai_veceq", luai_veceq });
+	return_vector.push_back({ "luaB_setfenv", luaB_setfenv });
+	return_vector.push_back({ "lua_pushthread", lua_pushthread });
+	return_vector.push_back({ "luaB_getfenv", luaB_getfenv });
+	return_vector.push_back({ "lua_setsafeenv", lua_setsafeenv });
+	return_vector.push_back({ "lua_getlocal", lua_getlocal });
+	return_vector.push_back({ "lua_setlocal", lua_setlocal });
+	return_vector.push_back({ "luaF_getlocal", luaF_getlocal });
 	return return_vector;
 }
 
